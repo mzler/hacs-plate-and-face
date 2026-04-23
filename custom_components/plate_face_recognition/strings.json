@@ -1,0 +1,60 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Plate & Face Recognition – Setup",
+        "description": "Select up to {max_cameras} camera entities.",
+        "data": {
+          "cameras": "Camera entities",
+          "enable_plates": "Enable license plate recognition",
+          "enable_faces": "Enable face recognition",
+          "face_threshold": "Face recognition tolerance",
+          "plate_min_confidence": "Minimum OCR confidence"
+        }
+      }
+    },
+    "error": {
+      "no_cameras": "Please select at least one camera entity.",
+      "too_many_cameras": "A maximum of {max_cameras} cameras is allowed."
+    },
+    "abort": {
+      "already_configured": "Integration is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Plate & Face Recognition – Options",
+        "data": {
+          "cameras": "Camera entities",
+          "enable_plates": "Enable license plate recognition",
+          "enable_faces": "Enable face recognition",
+          "face_threshold": "Face recognition tolerance",
+          "plate_min_confidence": "Minimum OCR confidence"
+        }
+      }
+    },
+    "error": {
+      "no_cameras": "Please select at least one camera entity.",
+      "too_many_cameras": "A maximum of {max_cameras} cameras is allowed."
+    }
+  },
+  "services": {
+    "register_face": {
+      "name": "Register Face",
+      "description": "Register a known person from a photo file."
+    },
+    "capture_face_from_camera": {
+      "name": "Capture Face from Camera",
+      "description": "Take a snapshot from a camera and register the face."
+    },
+    "delete_face": {
+      "name": "Delete Face",
+      "description": "Remove a person from the face database."
+    },
+    "list_faces": {
+      "name": "List Known Faces",
+      "description": "Fire an event listing all registered faces."
+    }
+  }
+}

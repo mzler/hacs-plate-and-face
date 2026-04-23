@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Plate & Face Recognition – Setup",
+        "description": "Select up to {max_cameras} camera entities. A license-plate sensor and a face sensor will be created for each camera.",
+        "data": {
+          "cameras": "Camera entities",
+          "enable_plates": "Enable license plate recognition",
+          "enable_faces": "Enable face recognition",
+          "face_threshold": "Face recognition tolerance (lower = stricter)",
+          "plate_min_confidence": "Minimum OCR confidence (0–1)"
+        }
+      }
+    },
+    "error": {
+      "no_cameras": "Please select at least one camera entity.",
+      "too_many_cameras": "A maximum of {max_cameras} cameras is allowed."
+    },
+    "abort": {
+      "already_configured": "Integration is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Plate & Face Recognition – Options",
+        "description": "Update the configuration. Up to {max_cameras} cameras allowed.",
+        "data": {
+          "cameras": "Camera entities",
+          "enable_plates": "Enable license plate recognition",
+          "enable_faces": "Enable face recognition",
+          "face_threshold": "Face recognition tolerance",
+          "plate_min_confidence": "Minimum OCR confidence"
+        }
+      }
+    },
+    "error": {
+      "no_cameras": "Please select at least one camera entity.",
+      "too_many_cameras": "A maximum of {max_cameras} cameras is allowed."
+    }
+  }
+}

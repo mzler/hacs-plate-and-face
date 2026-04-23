@@ -1,0 +1,35 @@
+services:
+  homeassistant:
+    container_name: ha-plate-face-demo
+    image: ghcr.io/home-assistant/home-assistant:stable
+    restart: unless-stopped
+    privileged: false
+    # Explizite Port-Mappings statt network_mode: host (funktioniert auf macOS)
+    ports:
+      - "8123:8123"
+    environment:
+      - TZ=Europe/Vienna
+    volumes:
+      # HA Konfigurationsverzeichnis
+      - ./docker/homeassistant:/config
+      # Custom Integration direkt einbinden (kein HACS nötig für die Demo)
+      - ./custom_components/plate_face_recognition:/config/custom_components/plate_face_recognition:ro
+      # Gesichtsdatenbank persistieren
+      - ./docker/faces:/config/plate_face_recognition/known_faces
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  # Einfacher MJPEG-Teststream als Demo-Kamera
+  demo-camera:
+    container_name: ha-demo-camera
+    build:
+      context: ./docker/demo-camera
+    restart: unless-stopped
+    ports:
+      - "8554:8554"    # MJPEG Stream
+    environment:
+      - TZ=Europe/Vienna

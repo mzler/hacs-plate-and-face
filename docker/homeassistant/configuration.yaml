@@ -1,0 +1,41 @@
+# Home Assistant Demo Configuration
+# ===================================
+# Diese Konfiguration ist für die lokale Entwicklungs-Demo gedacht.
+
+homeassistant:
+  name: Plate & Face Demo
+  latitude: 48.2082
+  longitude: 16.3738
+  elevation: 171
+  unit_system: metric
+  currency: EUR
+  country: AT
+  time_zone: Europe/Vienna
+  language: de
+
+# Grundlegende Integrationen
+default_config:
+
+# HTTP – für Docker ohne SSL
+http:
+  server_host: "0.0.0.0"
+  server_port: 8123
+  ip_ban_enabled: false
+  login_attempts_threshold: -1
+
+# Logger für die Integration
+logger:
+  default: warning
+  logs:
+    custom_components.plate_face_recognition: debug
+    easyocr: warning
+    face_recognition: info
+
+# Frontend
+frontend:
+  themes: {}
+
+# Lovelace UI – manuell konfiguriert
+lovelace:
+  mode: yaml
+  resources: []

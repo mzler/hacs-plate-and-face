@@ -1,0 +1,68 @@
+title: Plate & Face Recognition – Demo Dashboard
+
+views:
+  - title: Übersicht
+    path: overview
+    icon: mdi:home
+    cards:
+      - type: markdown
+        content: |
+          ## 🚗 Plate & Face Recognition – Demo
+          Konfiguriere die Integration unter **Einstellungen → Geräte & Dienste → Integration hinzufügen → Plate & Face Recognition**
+
+      - type: entities
+        title: Erkennungs-Sensoren
+        entities:
+          - entity: sensor.camera_demo_kamera_1_einfahrt_license_plate
+            name: Kennzeichen (Kamera 1)
+            icon: mdi:car-info
+          - entity: sensor.camera_demo_kamera_1_einfahrt_detected_faces
+            name: Gesichter (Kamera 1)
+            icon: mdi:face-recognition
+          - entity: sensor.camera_demo_kamera_2_garage_license_plate
+            name: Kennzeichen (Kamera 2)
+            icon: mdi:car-info
+          - entity: sensor.camera_demo_kamera_2_garage_detected_faces
+            name: Gesichter (Kamera 2)
+            icon: mdi:face-recognition
+          - entity: sensor.plate_face_recognition_known_faces
+            name: Bekannte Gesichter
+            icon: mdi:account-multiple
+
+      - type: horizontal-stack
+        cards:
+          - type: picture-entity
+            entity: camera.demo_kamera_1_einfahrt
+            name: Kamera 1 – Einfahrt
+            show_state: false
+          - type: picture-entity
+            entity: camera.demo_kamera_2_garage
+            name: Kamera 2 – Garage
+            show_state: false
+
+  - title: Gesichter verwalten
+    path: faces
+    icon: mdi:account-multiple
+    cards:
+      - type: markdown
+        content: |
+          ## Gesicht registrieren
+          Rufe den Service **`plate_face_recognition.capture_face_from_camera`** auf,
+          um eine Person direkt von der Kamera zu registrieren.
+
+          Oder nutze **`plate_face_recognition.register_face`** mit einem Dateipfad.
+
+      - type: button
+        name: Gesichter auflisten
+        icon: mdi:format-list-bulleted
+        tap_action:
+          action: call-service
+          service: plate_face_recognition.list_faces
+
+      - type: entities
+        title: Bekannte Personen
+        entities:
+          - entity: sensor.plate_face_recognition_known_faces
+            type: attribute
+            attribute: names
+            name: Registrierte Namen

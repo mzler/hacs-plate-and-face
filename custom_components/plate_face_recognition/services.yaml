@@ -1,0 +1,61 @@
+register_face:
+  name: Register Face
+  description: >
+    Register a new person in the face database using a photo file stored on
+    the Home Assistant server.
+  fields:
+    name:
+      name: Name
+      description: The name to assign to this person.
+      required: true
+      example: "Alice"
+      selector:
+        text:
+    file_path:
+      name: File Path
+      description: >
+        Absolute path to a JPEG or PNG portrait photo on the Home Assistant
+        host (e.g. /config/faces/alice.jpg).
+      required: true
+      example: "/config/faces/alice.jpg"
+      selector:
+        text:
+
+capture_face_from_camera:
+  name: Capture Face from Camera
+  description: >
+    Take a live snapshot from a camera entity and register it as a known face.
+  fields:
+    name:
+      name: Name
+      description: The name to assign to the detected person.
+      required: true
+      example: "Bob"
+      selector:
+        text:
+    camera_entity_id:
+      name: Camera Entity
+      description: The camera entity to capture the snapshot from.
+      required: true
+      example: "camera.front_door"
+      selector:
+        entity:
+          domain: camera
+
+delete_face:
+  name: Delete Face
+  description: Remove a person and all their face encodings from the database.
+  fields:
+    name:
+      name: Name
+      description: The name of the person to delete.
+      required: true
+      example: "Alice"
+      selector:
+        text:
+
+list_faces:
+  name: List Known Faces
+  description: >
+    Fire a Home Assistant event (plate_face_recognition_faces_listed) that
+    contains all registered face names.  Useful for debugging and automations.

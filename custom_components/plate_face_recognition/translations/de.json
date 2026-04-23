@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Plate & Face Recognition – Einrichtung",
+        "description": "Wähle bis zu {max_cameras} Kameraentitäten aus. Pro Kamera werden je ein Sensor für Nummernschilder und einer für Gesichter angelegt.",
+        "data": {
+          "cameras": "Kameraentitäten",
+          "enable_plates": "Nummernschilderkennung aktivieren",
+          "enable_faces": "Gesichtserkennung aktivieren",
+          "face_threshold": "Gesichtserkennungs-Toleranz (niedriger = genauer)",
+          "plate_min_confidence": "Mindestkonfidenz Texterkennung (0–1)"
+        }
+      }
+    },
+    "error": {
+      "no_cameras": "Bitte mindestens eine Kameraentität auswählen.",
+      "too_many_cameras": "Maximal {max_cameras} Kameras erlaubt."
+    },
+    "abort": {
+      "already_configured": "Integration ist bereits konfiguriert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Plate & Face Recognition – Einstellungen",
+        "description": "Passe die Konfiguration an. Bis zu {max_cameras} Kameras möglich.",
+        "data": {
+          "cameras": "Kameraentitäten",
+          "enable_plates": "Nummernschilderkennung aktivieren",
+          "enable_faces": "Gesichtserkennung aktivieren",
+          "face_threshold": "Gesichtserkennungs-Toleranz",
+          "plate_min_confidence": "Mindestkonfidenz Texterkennung"
+        }
+      }
+    },
+    "error": {
+      "no_cameras": "Bitte mindestens eine Kameraentität auswählen.",
+      "too_many_cameras": "Maximal {max_cameras} Kameras erlaubt."
+    }
+  }
+}

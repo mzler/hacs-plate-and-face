@@ -1,0 +1,19 @@
+{
+  "domain": "plate_face_recognition",
+  "name": "Plate & Face Recognition",
+  "version": "1.0.0",
+  "documentation": "https://github.com/timohaberl/hacs-plate-face-recognition",
+  "issue_tracker": "https://github.com/timohaberl/hacs-plate-face-recognition/issues",
+  "requirements": [
+    "face_recognition==1.3.0",
+    "opencv-python-headless==4.9.0.80",
+    "easyocr==1.7.1",
+    "numpy>=1.21.0",
+    "Pillow>=9.0.0"
+  ],
+  "dependencies": ["camera"],
+  "codeowners": ["@timohaberl"],
+  "iot_class": "local_push",
+  "config_flow": true,
+  "hacs": "1.0.0"
+}
