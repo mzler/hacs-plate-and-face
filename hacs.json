@@ -1,6 +1,5 @@
 {
   "name": "Plate & Face Recognition",
   "content_in_root": false,
-  "render_readme": true,
-  "iot_class": "local_polling"
+  "render_readme": true
 }
