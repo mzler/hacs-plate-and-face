@@ -1,21 +1,31 @@
 {
+  "title": "Plate & Face Recognition",
   "config": {
     "step": {
-      "user": {
-        "title": "Plate & Face Recognition – Setup",
-        "description": "Select up to {max_cameras} camera entities.",
+      "addon_url": {
+        "title": "Add-on Connection",
+        "description": "Enter the URL of the Plate & Face Recognition Add-on. Default: http://localhost:8585",
         "data": {
-          "cameras": "Camera entities",
+          "addon_url": "Add-on URL"
+        }
+      },
+      "camera_config": {
+        "title": "Camera Settings",
+        "description": "Configure which cameras to monitor and recognition settings.",
+        "data": {
+          "cameras": "Cameras to monitor",
+          "scan_interval": "Scan interval (seconds)",
           "enable_plates": "Enable license plate recognition",
           "enable_faces": "Enable face recognition",
-          "face_threshold": "Face recognition tolerance",
-          "plate_min_confidence": "Minimum OCR confidence"
+          "plate_min_confidence": "Minimum plate confidence (0.0 - 1.0)",
+          "face_threshold": "Face recognition threshold (0.0 - 1.0)"
         }
       }
     },
     "error": {
-      "no_cameras": "Please select at least one camera entity.",
-      "too_many_cameras": "A maximum of {max_cameras} cameras is allowed."
+      "cannot_connect": "Cannot connect to Add-on. Is it running?",
+      "invalid_auth": "Invalid authentication.",
+      "unknown": "Unexpected error."
     },
     "abort": {
       "already_configured": "Integration is already configured."
@@ -23,38 +33,85 @@
   },
   "options": {
     "step": {
-      "init": {
-        "title": "Plate & Face Recognition – Options",
+      "camera_config": {
+        "title": "Camera Settings",
         "data": {
-          "cameras": "Camera entities",
+          "cameras": "Cameras to monitor",
+          "scan_interval": "Scan interval (seconds)",
           "enable_plates": "Enable license plate recognition",
           "enable_faces": "Enable face recognition",
-          "face_threshold": "Face recognition tolerance",
-          "plate_min_confidence": "Minimum OCR confidence"
+          "plate_min_confidence": "Minimum plate confidence",
+          "face_threshold": "Face recognition threshold"
         }
       }
-    },
-    "error": {
-      "no_cameras": "Please select at least one camera entity.",
-      "too_many_cameras": "A maximum of {max_cameras} cameras is allowed."
     }
   },
   "services": {
     "register_face": {
       "name": "Register Face",
-      "description": "Register a known person from a photo file."
+      "description": "Register a face from an image file for a person.",
+      "fields": {
+        "name": {
+          "name": "Person Name",
+          "description": "The name of the person to register."
+        },
+        "file_path": {
+          "name": "File Path",
+          "description": "Absolute path to the portrait image file."
+        }
+      }
     },
     "capture_face_from_camera": {
       "name": "Capture Face from Camera",
-      "description": "Take a snapshot from a camera and register the face."
+      "description": "Take a snapshot from a camera and register the detected face.",
+      "fields": {
+        "name": {
+          "name": "Person Name",
+          "description": "The name of the person to register."
+        },
+        "camera_entity_id": {
+          "name": "Camera",
+          "description": "The camera entity to capture from."
+        }
+      }
+    },
+    "save_profile": {
+      "name": "Save Profile",
+      "description": "Create or update a person profile with license plates and HA user link.",
+      "fields": {
+        "name": {
+          "name": "Person Name",
+          "description": "The name of the person."
+        },
+        "plates": {
+          "name": "License Plates",
+          "description": "Comma-separated list of license plates."
+        },
+        "user_id": {
+          "name": "HA User ID",
+          "description": "Optional: Home Assistant user ID to link."
+        }
+      }
     },
     "delete_face": {
       "name": "Delete Face",
-      "description": "Remove a person from the face database."
+      "description": "Remove all face encodings for a person.",
+      "fields": {
+        "name": {
+          "name": "Person Name",
+          "description": "The name of the person to remove."
+        }
+      }
     },
-    "list_faces": {
-      "name": "List Known Faces",
-      "description": "Fire an event listing all registered faces."
+    "delete_profile": {
+      "name": "Delete Profile",
+      "description": "Remove a person profile (plates + user link).",
+      "fields": {
+        "name": {
+          "name": "Person Name",
+          "description": "The name of the profile to delete."
+        }
+      }
     }
   }
 }

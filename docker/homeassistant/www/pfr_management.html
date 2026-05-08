@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personen & Kennzeichen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #03a9f4; --primary-dark: #0288d1; --accent: #ff9800;
+            --danger: #ef5350; --success: #66bb6a; --warn: #ffa726;
+            --bg: #0d1117; --surface: rgba(255,255,255,0.04);
+            --border: rgba(255,255,255,0.1); --text: #e6edf3; --muted: #7d8590;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; }
+
+        .header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .header h1 { font-size: 1.4rem; font-weight: 600; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
+        .badge-ok  { background: rgba(102,187,106,.15); color: var(--success); border: 1px solid rgba(102,187,106,.3); }
+        .badge-err { background: rgba(239,83,80,.15);   color: var(--danger);  border: 1px solid rgba(239,83,80,.3); }
+
+        .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .tab { padding: 8px 18px; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 0.85rem; color: var(--muted); border: 1px solid transparent; border-bottom: none; transition: all .2s; }
+        .tab.active { color: var(--primary); border-color: var(--border); background: var(--surface); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 680px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+        .card h2 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 16px; }
+
+        label { display: block; font-size: 0.78rem; color: var(--muted); margin: 12px 0 5px; }
+        input[type="text"], select, input[type="file"] {
+            width: 100%; padding: 10px 13px; border-radius: 9px;
+            border: 1px solid var(--border); background: rgba(255,255,255,0.06);
+            color: var(--text); font-family: inherit; font-size: 0.88rem;
+        }
+        input[type="text"]:focus, select:focus { outline: none; border-color: var(--primary); }
+        select option { background: #1a1a2e; }
+
+        .btn { display: block; width: 100%; padding: 10px 16px; border-radius: 9px; border: none; cursor: pointer; font-family: inherit; font-size: 0.88rem; font-weight: 600; margin-top: 12px; transition: all .2s; }
+        .btn:hover { transform: translateY(-1px); opacity: .9; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-accent  { background: var(--accent);  color: #fff; }
+        .btn-ghost   { background: rgba(255,255,255,.07); color: var(--text); }
+        .btn-sm      { width: auto; padding: 5px 12px; font-size: 0.78rem; border-radius: 7px; margin-top: 0; }
+
+        .profile-card {
+            background: rgba(255,255,255,.03); border: 1px solid var(--border);
+            border-radius: 11px; padding: 14px; display: flex;
+            justify-content: space-between; align-items: flex-start;
+            gap: 12px; margin-bottom: 10px; cursor: pointer;
+            transition: border-color .2s;
+        }
+        .profile-card:hover { border-color: var(--primary); }
+        .profile-card.editing { border-color: var(--accent); background: rgba(255,152,0,.05); }
+        .profile-name { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
+        .meta { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+        .ok  { color: var(--success); }
+        .no  { color: var(--danger); }
+        .ha-link { color: var(--primary); }
+
+        .btn-del { background: rgba(239,83,80,.12); border: 1px solid rgba(239,83,80,.25); color: var(--danger); border-radius: 7px; padding: 5px 11px; cursor: pointer; font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
+
+        .empty { color: var(--muted); text-align: center; padding: 30px 0; font-size: 0.9rem; }
+
+        .form-hint { font-size: 0.73rem; color: var(--muted); margin-top: 4px; }
+
+        .ha-user-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .ha-user-row input { flex: 1; margin: 0; }
+        .ha-user-row button { flex-shrink: 0; }
+
+        #toast { position: fixed; bottom: 20px; right: 20px; padding: 11px 18px; border-radius: 11px; font-size: 0.88rem; font-weight: 600; display: none; z-index: 9999; color: #fff; max-width: 300px; }
+
+        hr { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>👤 Personen & Kennzeichen</h1>
+    <span id="apiBadge" class="badge">Verbinde...</span>
+</div>
+
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('profiles')">Profile</div>
+    <div class="tab" onclick="switchTab('ha_users')">HA Benutzer</div>
+</div>
+
+<!-- ===== TAB: PROFILE ===== -->
+<div id="tab-profiles" class="tab-content active">
+    <div class="grid-2">
+
+        <!-- Linke Spalte: Liste -->
+        <div class="card">
+            <h2>Registrierte Profile <span id="profileCount" style="font-weight:400"></span></h2>
+            <div id="profileList"><div class="empty">Lade...</div></div>
+            <button class="btn btn-ghost" style="margin-top:12px; font-size:0.78rem; padding:6px" onclick="loadData()">↻ Aktualisieren</button>
+        </div>
+
+        <!-- Rechte Spalte: Formular -->
+        <div class="card">
+            <h2 id="formTitle">Neues Profil erstellen</h2>
+            <div id="editHint" style="display:none; font-size:0.78rem; color:var(--warn); margin-bottom:8px">✏️ Bearbeitungsmodus – Änderungen werden bestehend überschrieben</div>
+
+            <label>Name der Person *</label>
+            <input type="text" id="personName" placeholder="z.B. Max Mustermann">
+
+            <label>Kennzeichen (kommagetrennt)</label>
+            <input type="text" id="licensePlates" placeholder="W-12345, M-XY-567">
+
+            <label>Home Assistant Benutzer (optional)</label>
+            <select id="haUserSelect">
+                <option value="">— keiner —</option>
+            </select>
+            <div class="form-hint">Benutzer einmalig im Tab „HA Benutzer" anlegen</div>
+
+            <button class="btn btn-primary" onclick="saveProfile()">💾 Profil speichern</button>
+            <button class="btn btn-ghost" onclick="clearForm()" id="clearBtn" style="display:none">✕ Bearbeitung abbrechen</button>
+
+            <hr>
+
+            <h2>Gesicht registrieren (Biometrie)</h2>
+            <div style="font-size:0.78rem; color:var(--muted); margin-bottom:8px">Portrait-Foto mit einem klar sichtbaren Gesicht. Name muss oben eingetragen sein.</div>
+            <label>Foto auswählen</label>
+            <input type="file" id="faceImage" accept="image/jpeg,image/png,image/webp">
+            <button class="btn btn-accent" onclick="uploadFace()">📷 Gesicht registrieren</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TAB: HA BENUTZER ===== -->
+<div id="tab-ha_users" class="tab-content">
+    <div style="max-width:520px">
+        <div class="card">
+            <h2>Home Assistant Benutzer verwalten</h2>
+            <p style="font-size:0.82rem; color:var(--muted); margin-bottom:16px">
+                Trage deine HA-Benutzer einmalig ein. Die User-ID findest du in HA unter
+                <strong>Einstellungen → Personen</strong> – die URL endet mit der ID
+                (z.B. <code style="color:var(--primary)">...persons/abc123def</code>).
+            </p>
+            <div id="haUserRows"></div>
+            <button class="btn btn-ghost" onclick="addHaUserRow()" style="margin-top:8px">+ Benutzer hinzufügen</button>
+            <button class="btn btn-primary" onclick="saveHaUsers()">💾 Benutzerliste speichern</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'http://localhost:8585';
+
+// ─── State ───────────────────────────────────────────────
+let allProfiles = [];
+let haUsers = [];
+let editingName = null;
+
+// ─── Init ────────────────────────────────────────────────
+async function init() {
+    const ok = await checkApi();
+    if (ok) {
+        await loadData();
+        await loadHaUsers();
+    }
+}
+
+async function checkApi() {
+    try {
+        const r = await fetch(`${API}/health`, { signal: AbortSignal.timeout(3000) });
+        if (r.ok) {
+            setBadge('✅ Add-on verbunden', 'ok');
+            return true;
+        }
+    } catch(e) {}
+    setBadge('❌ Add-on nicht erreichbar', 'err');
+    document.getElementById('profileList').innerHTML = '<div class="empty">Add-on nicht erreichbar. Läuft Docker?</div>';
+    return false;
+}
+
+// ─── Tab switching ────────────────────────────────────────
+function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['profiles','ha_users'][i] === name));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ─── Profiles ────────────────────────────────────────────
+async function loadData() {
+    try {
+        const [pRes, fRes] = await Promise.all([fetch(`${API}/profiles`), fetch(`${API}/faces`)]);
+        allProfiles = await pRes.json();
+        const faces = await fRes.json();
+        const faceCounts = faces.face_counts || {};
+
+        const allNames = new Set([...allProfiles.map(p=>p.name), ...Object.keys(faceCounts)]);
+        const list = document.getElementById('profileList');
+        document.getElementById('profileCount').textContent = `(${allNames.size})`;
+
+        if (!allNames.size) { list.innerHTML = '<div class="empty">Noch keine Profile.</div>'; return; }
+        list.innerHTML = '';
+        allNames.forEach(name => {
+            const p = allProfiles.find(x=>x.name===name) || {plates:[], user_id:null};
+            const fc = faceCounts[name] || 0;
+            const haUser = haUsers.find(u => u.user_id === p.user_id);
+            const div = document.createElement('div');
+            div.className = 'profile-card' + (editingName===name ? ' editing' : '');
+            div.innerHTML = `
+                <div style="flex:1;min-width:0">
+                    <div class="profile-name">${name}</div>
+                    <div class="meta">🚗 ${p.plates?.length ? p.plates.join(', ') : '— kein Kennzeichen'}</div>
+                    <div class="meta ${fc>0?'ok':'no'}">${fc>0?'✔':'✘'} ${fc} Gesichtsbild(er)</div>
+                    ${haUser ? `<div class="meta ha-link">🔗 ${haUser.name}</div>` : ''}
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+                    <button class="btn-del" style="background:rgba(3,169,244,.12);border-color:rgba(3,169,244,.3);color:var(--primary)" onclick="startEdit('${name}')">✏️ Bearbeiten</button>
+                    <button class="btn-del" onclick="deleteEntry('${name}')">🗑 Löschen</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    } catch(e) { console.error(e); }
+}
+
+function startEdit(name) {
+    const p = allProfiles.find(x=>x.name===name) || {plates:[], user_id:null};
+    editingName = name;
+    document.getElementById('personName').value = name;
+    document.getElementById('licensePlates').value = (p.plates||[]).join(', ');
+    document.getElementById('haUserSelect').value = p.user_id || '';
+    document.getElementById('formTitle').textContent = `✏️ Profil bearbeiten`;
+    document.getElementById('editHint').style.display = 'block';
+    document.getElementById('clearBtn').style.display = 'block';
+    loadData();
+}
+
+function clearForm() {
+    editingName = null;
+    document.getElementById('personName').value = '';
+    document.getElementById('licensePlates').value = '';
+    document.getElementById('haUserSelect').value = '';
+    document.getElementById('formTitle').textContent = 'Neues Profil erstellen';
+    document.getElementById('editHint').style.display = 'none';
+    document.getElementById('clearBtn').style.display = 'none';
+    loadData();
+}
+
+async function saveProfile() {
+    const name   = document.getElementById('personName').value.trim();
+    const plates = document.getElementById('licensePlates').value.trim();
+    const sel    = document.getElementById('haUserSelect');
+    const userId = sel.value || null;
+
+    if (!name) return toast('Bitte einen Namen eingeben.', 'danger');
+
+    try {
+        const res = await fetch(`${API}/profiles`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({name, plates, user_id: userId})
+        });
+        if (res.ok) {
+            toast(`✅ Profil "${name}" gespeichert.`, 'success');
+            clearForm();
+        } else {
+            const e = await res.json();
+            toast('Fehler: ' + detailMsg(e.detail), 'danger');
+        }
+    } catch(e) { toast('Netzwerkfehler: ' + e.message, 'danger'); }
+}
+
+async function uploadFace() {
+    const name = document.getElementById('personName').value.trim();
+    const file = document.getElementById('faceImage').files[0];
+    if (!name) return toast('Bitte zuerst Namen eingeben.', 'danger');
+    if (!file) return toast('Bitte ein Foto auswählen.', 'danger');
+
+    toast('Verarbeite Bild…', 'info');
+    const form = new FormData();
+    form.append('name', name);
+    form.append('image', file);
+
+    try {
+        const res = await fetch(`${API}/faces/register`, {method:'POST', body:form});
+        const d = await res.json();
+        if (res.ok) {
+            toast(`✅ ${d.total||d.encodings_added||1} Gesichtsmerkmal(e) für "${name}" gespeichert.`, 'success');
+            loadData();
+        } else {
+            toast('Fehler: ' + detailMsg(d.detail), 'danger');
+        }
+    } catch(e) { toast('Upload-Fehler: ' + e.message, 'danger'); }
+}
+
+async function deleteEntry(name) {
+    if (!confirm(`Profil und Gesichtsdaten für "${name}" wirklich löschen?`)) return;
+    await Promise.allSettled([
+        fetch(`${API}/profiles/${encodeURIComponent(name)}`, {method:'DELETE'}),
+        fetch(`${API}/faces/${encodeURIComponent(name)}`,    {method:'DELETE'})
+    ]);
+    if (editingName === name) clearForm();
+    toast(`"${name}" gelöscht.`, 'success');
+    loadData();
+}
+
+// ─── HA Users ────────────────────────────────────────────
+async function loadHaUsers() {
+    try {
+        const r = await fetch(`${API}/ha_users`);
+        haUsers = await r.json();
+        renderHaUserRows();
+        renderHaUserDropdown();
+    } catch(e) {}
+}
+
+function renderHaUserRows() {
+    const cont = document.getElementById('haUserRows');
+    cont.innerHTML = '';
+    if (!haUsers.length) {
+        cont.innerHTML = '<div style="color:var(--muted); font-size:0.82rem; margin-bottom:8px">Noch keine Benutzer eingetragen.</div>';
+    }
+    haUsers.forEach((u, i) => {
+        const row = document.createElement('div');
+        row.className = 'ha-user-row';
+        row.innerHTML = `
+            <input type="text" placeholder="Name (z.B. Max)" value="${u.name||''}" oninput="haUsers[${i}].name=this.value">
+            <input type="text" placeholder="User-ID" value="${u.user_id||''}" oninput="haUsers[${i}].user_id=this.value">
+            <button class="btn btn-sm" style="background:rgba(239,83,80,.2);color:var(--danger)" onclick="removeHaUser(${i})">✕</button>
+        `;
+        cont.appendChild(row);
+    });
+}
+
+function addHaUserRow() {
+    haUsers.push({name:'', user_id:''});
+    renderHaUserRows();
+}
+
+function removeHaUser(i) {
+    haUsers.splice(i, 1);
+    renderHaUserRows();
+    renderHaUserDropdown();
+}
+
+async function saveHaUsers() {
+    const cleaned = haUsers.filter(u => u.name && u.user_id);
+    try {
+        const res = await fetch(`${API}/ha_users`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({users: cleaned})
+        });
+        if (res.ok) {
+            haUsers = cleaned;
+            renderHaUserRows();
+            renderHaUserDropdown();
+            toast(`✅ ${cleaned.length} Benutzer gespeichert.`, 'success');
+        }
+    } catch(e) { toast('Fehler: ' + e.message, 'danger'); }
+}
+
+function renderHaUserDropdown() {
+    const sel = document.getElementById('haUserSelect');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— keiner —</option>';
+    haUsers.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.user_id;
+        opt.textContent = u.name;
+        sel.appendChild(opt);
+    });
+    sel.value = cur;
+}
+
+// ─── Helpers ─────────────────────────────────────────────
+function detailMsg(d) {
+    if (!d) return 'Unbekannter Fehler';
+    if (typeof d === 'string') return d;
+    if (Array.isArray(d)) return d.map(x => x.msg || JSON.stringify(x)).join(', ');
+    return JSON.stringify(d);
+}
+
+function setBadge(text, type) {
+    const b = document.getElementById('apiBadge');
+    b.textContent = text;
+    b.className = 'badge badge-' + type;
+}
+
+function toast(msg, type='info') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.display = 'block';
+    t.style.background = type==='danger' ? 'var(--danger)' : type==='success' ? 'var(--success)' : 'var(--primary)';
+    clearTimeout(t._t);
+    t._t = setTimeout(()=>t.style.display='none', 4000);
+}
+
+// Auto-refresh
+setInterval(loadData, 15000);
+init();
+</script>
+</body>
+</html>

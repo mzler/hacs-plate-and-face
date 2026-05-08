@@ -1,0 +1,9 @@
+title: "Personen & Kennzeichen Management"
+views:
+  - title: Management
+    path: main
+    panel: true
+    cards:
+      - type: iframe
+        url: "/local/pfr_management.html?v=3"
+        aspect_ratio: "100%"

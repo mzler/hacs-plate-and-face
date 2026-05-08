@@ -1,191 +1,183 @@
-# Plate & Face Recognition – HACS Custom Integration
+# Plate & Face Recognition for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+[![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![GitHub Release](https://img.shields.io/github/release/timohaberl/hacs-plate-face-recognition.svg)](https://github.com/timohaberl/hacs-plate-face-recognition/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Eine HACS Custom Integration für Home Assistant, die Nummernschilder und Gesichter von bis zu **5 Kameraentitäten** erkennt – vollständig lokal, ohne Cloud-Dienst.
+A Home Assistant custom integration for **local** license plate and face recognition using a companion Docker container. All AI/ML processing runs locally — **no cloud, no subscription**.
 
----
-
-## Features
-
-| Feature | Beschreibung |
-|---|---|
-| 🚗 Nummernschilderkennung | OpenCV + EasyOCR erkennt Kennzeichen in jedem Kamerabild |
-| 👤 Gesichtserkennung | `face_recognition`-Bibliothek erkennt bekannte Personen |
-| 🔄 Live-Updates | Erkennung startet automatisch bei jedem neuen Kamerabild |
-| 📦 Lokal | Keine Cloud, keine API-Keys – alles auf deinem HA-Server |
-| 🗂️ Gesichtsdatenbank | Personen mit Namen registrieren via Service oder Kamera-Snapshot |
+![Management UI Preview](docs/preview.png)
 
 ---
 
-## Sensoren (pro Kamera)
+## ✨ Features
 
-Für jede konfigurierte Kamera werden **zwei Sensoren** angelegt:
-
-| Entitäts-ID | Beschreibung |
-|---|---|
-| `sensor.<kamera>_license_plate` | Aktuell sichtbare Nummernschilder (kommagetrennt) |
-| `sensor.<kamera>_detected_faces` | Erkannte Personen (kommagetrennt); Unbekannte als `Unknown (N)` |
-
-Zusätzlich:
-
-| Entitäts-ID | Beschreibung |
-|---|---|
-| `sensor.plate_face_recognition_known_faces` | Anzahl registrierter Gesichter + Liste als Attribut |
+- 🚗 **License Plate Recognition** via EasyOCR (local, offline)
+- 👤 **Face Recognition** via dlib & face_recognition (local, offline)
+- 🔗 **Person Profiles** – link plates and faces to a named person
+- 🏠 **HA User Linking** – associate recognized persons with HA users
+- 📱 **Management UI** – built-in web panel for managing profiles
+- ⚡ **Automation Triggers** – fire events when a known person is detected
+- 🔒 **100% Local** – no data leaves your network
 
 ---
 
-## Installation
+## 📋 Requirements
 
-### Voraussetzungen
-
-- Home Assistant 2023.1 oder neuer
-- HACS installiert
-- Ausreichend RAM (~512 MB für EasyOCR-Modelle, ~256 MB für face_recognition)
-
-### Via HACS (empfohlen)
-
-1. HACS → **Benutzerdefinierte Repositories** → URL eintragen:
-   ```
-   https://github.com/timohaberl/hacs-plate-face-recognition
-   ```
-2. Kategorie: **Integration**
-3. Integration installieren & Home Assistant neu starten
-
-### Manuell
-
-1. Dieses Repository klonen / ZIP herunterladen
-2. Ordner `custom_components/plate_face_recognition` in dein
-   `<config>/custom_components/` Verzeichnis kopieren
-3. Home Assistant neu starten
+| Component | Requirement |
+|-----------|-------------|
+| Home Assistant | 2023.1.0 or newer |
+| HACS | For easy installation |
+| Docker | For the ML Add-on backend |
 
 ---
 
-## Einrichtung
+## 🚀 Installation
 
-1. **Einstellungen → Geräte & Dienste → Integration hinzufügen**
-2. Nach „Plate & Face Recognition" suchen
-3. Kameraentitäten auswählen (bis zu 5)
-4. Optionen anpassen (Toleranzen, Features aktivieren/deaktivieren)
+### Step 1: Install via HACS
 
----
+1. Open **HACS** in Home Assistant
+2. Go to **Integrations**
+3. Click the **⋮** menu → **Custom Repositories**
+4. Add: `https://github.com/timohaberl/hacs-plate-face-recognition`
+5. Search for **Plate & Face Recognition** and install it
+6. Restart Home Assistant
 
-## Gesichter registrieren
+### Step 2: Start the ML Add-on
 
-### Option A: Von einer Bilddatei
+The integration requires a companion Docker container for all AI processing.
 
-Lege ein Portraitfoto auf deinen HA-Server (z. B. `/config/faces/alice.jpg`) und rufe den Service auf:
+**Option A: Docker Compose (recommended)**
 
-```yaml
-service: plate_face_recognition.register_face
-data:
-  name: "Alice"
-  file_path: "/config/faces/alice.jpg"
-```
-
-### Option B: Live-Snapshot von einer Kamera
-
-```yaml
-service: plate_face_recognition.capture_face_from_camera
-data:
-  name: "Bob"
-  camera_entity_id: camera.front_door
-```
-
-### Gesicht löschen
-
-```yaml
-service: plate_face_recognition.delete_face
-data:
-  name: "Alice"
-```
-
-### Alle Gesichter auflisten
-
-```yaml
-service: plate_face_recognition.list_faces
-```
-→ Feuert das Event `plate_face_recognition_faces_listed` mit Namen & Anzahl.
-
----
-
-## Events für Automationen
-
-| Event | Payload | Beschreibung |
-|---|---|---|
-| `plate_face_recognition_plate_detected` | `camera`, `plates` | Nummernschild erkannt |
-| `plate_face_recognition_face_detected` | `camera`, `faces`, `unknown` | Gesicht erkannt |
-
-**Beispiel-Automation:**
-
-```yaml
-automation:
-  - alias: "Tor öffnen bei bekanntem Kennzeichen"
-    trigger:
-      - platform: event
-        event_type: plate_face_recognition_plate_detected
-        event_data:
-          plates:
-            - "W AB 1234"
-    action:
-      - service: cover.open_cover
-        target:
-          entity_id: cover.garagentor
-```
-
----
-
-## Konfigurationsoptionen
-
-| Option | Standard | Beschreibung |
-|---|---|---|
-| `cameras` | – | Liste der Kameraentitäten (1–5) |
-| `enable_plates` | `true` | Nummernschilderkennung aktivieren |
-| `enable_faces` | `true` | Gesichtserkennung aktivieren |
-| `face_threshold` | `0.55` | Toleranz (0 = sehr streng, 1 = sehr locker) |
-| `plate_min_confidence` | `0.50` | Mindestkonfidenz für OCR-Treffer |
-
----
-
-## Technische Details
-
-### Nummernschilderkennung
-1. **Regionen-Detektion**: OpenCV Canny-Edges + Kontur-Analyse findet rechteckige Bereiche mit Seitenverhältnis 1,5:1 – 7:1
-2. **OCR**: EasyOCR liest Text aus den Kandidaten-Regionen + Fallback auf Vollbild
-3. **Regex-Filter**: Nur Texte, die bekannten Kennzeichen-Mustern entsprechen (DE, AT, CH + generisch)
-
-### Gesichtserkennung
-- `face_recognition` (dlib HOG-Modell) für schnelle CPU-basierte Erkennung
-- Mehrere Trainingsfotos pro Person möglich → verbessert Genauigkeit
-- Unbekannte Gesichter werden als `Unknown (N)` ausgegeben
-
-### Datenspeicherung
-- Gesichts-Encodings gespeichert in: `<config>/plate_face_recognition/known_faces/known_faces.pkl`
-- Für Backup diesen Ordner sichern
-
----
-
-## Troubleshooting
-
-### EasyOCR lädt Modelle beim ersten Start herunter
-Das ist normal – EasyOCR lädt beim ersten Aufruf die OCR-Modelle (~100 MB). Danach werden sie gecacht.
-
-### `face_recognition` lässt sich nicht installieren
-Das Paket benötigt `cmake` und `dlib`. Auf Home Assistant OS:
 ```bash
-# Im Terminal-Addon:
-apk add cmake
-pip install dlib face_recognition
+git clone https://github.com/timohaberl/hacs-plate-face-recognition.git
+cd hacs-plate-face-recognition
+docker-compose up -d pfr-addon
 ```
 
-### Nummernschild wird nicht erkannt
-- Bild-Auflösung erhöhen (mind. 720p empfohlen)
-- `plate_min_confidence` auf `0.3` senken
-- Prüfen, ob das Kennzeichen im Bild klar lesbar ist
+**Option B: Docker Run**
+
+```bash
+docker run -d \
+  --name pfr-addon \
+  -p 8585:8585 \
+  -v pfr-data:/data \
+  timohaberl/pfr-addon:latest
+```
+
+### Step 3: Configure the Integration
+
+1. Go to **Settings → Devices & Services → Add Integration**
+2. Search for **Plate & Face Recognition**
+3. Enter the Add-on URL: `http://localhost:8585` (or your server IP)
+4. Select your camera entities
 
 ---
 
-## Lizenz
+## ⚙️ Configuration
 
-MIT License – © 2024 timohaberl
+### Management Panel
+
+After installation, a **"Personen & Kennzeichen"** panel appears in the HA sidebar.
+
+From there you can:
+- Create person profiles
+- Link license plates to persons
+- Upload face photos for biometric recognition
+- Assign HA users to recognized persons
+
+### Automation Examples
+
+**Trigger when a known person is detected:**
+
+```yaml
+alias: "Welcome Max home"
+trigger:
+  - platform: event
+    event_type: plate_face_recognition_face_detected
+    event_data:
+      faces:
+        - "Max"
+action:
+  - service: notify.mobile_app
+    data:
+      message: "Max arrived home!"
+```
+
+**Open garage when car plate is detected:**
+
+```yaml
+alias: "Open garage for known car"
+trigger:
+  - platform: event
+    event_type: plate_face_recognition_plate_detected
+    event_data:
+      plates:
+        - "W-12345"
+action:
+  - service: cover.open_cover
+    target:
+      entity_id: cover.garage
+```
+
+---
+
+## 📡 Services
+
+| Service | Description |
+|---------|-------------|
+| `plate_face_recognition.register_face` | Register a face from a file path |
+| `plate_face_recognition.capture_face_from_camera` | Capture & register face from camera |
+| `plate_face_recognition.save_profile` | Save/update a person profile |
+| `plate_face_recognition.delete_profile` | Delete a person profile |
+| `plate_face_recognition.delete_face` | Remove face encodings |
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────┐
+│         Home Assistant          │
+│  ┌──────────────────────────┐   │
+│  │  plate_face_recognition  │   │
+│  │  (custom_component)      │   │
+│  │  - Coordinator           │   │
+│  │  - Sensors               │   │
+│  │  - Services              │   │
+│  └────────────┬─────────────┘   │
+└───────────────┼─────────────────┘
+                │ HTTP REST (port 8585)
+                ▼
+┌─────────────────────────────────┐
+│        pfr-addon (Docker)       │
+│  - FastAPI REST Server          │
+│  - EasyOCR (License Plates)     │
+│  - dlib + face_recognition      │
+│  - Profile Manager              │
+└─────────────────────────────────┘
+```
+
+---
+
+## 🐛 Troubleshooting
+
+**Add-on not reachable:**
+- Ensure Docker container is running: `docker ps | grep pfr-addon`
+- Check add-on logs: `docker logs pfr-addon`
+- Verify port 8585 is not blocked by firewall
+
+**No faces detected:**
+- Use a clear, well-lit portrait photo
+- Ensure only one face is visible per photo
+- Try multiple photos per person for better accuracy
+
+---
+
+## 📄 License
+
+MIT License – see [LICENSE](LICENSE) file.
+
+## 🤝 Contributing
+
+Pull requests welcome! Please open an issue first to discuss major changes.

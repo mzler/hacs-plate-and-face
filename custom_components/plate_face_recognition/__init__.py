@@ -1,4 +1,8 @@
-"""Plate & Face Recognition – Home Assistant Custom Integration."""
+"""Plate & Face Recognition – Home Assistant Custom Integration (Add-on architecture).
+
+All ML work is delegated to the companion HA Add-on via REST API calls.
+The custom component itself has zero heavy Python dependencies.
+"""
 from __future__ import annotations
 
 import logging
@@ -26,8 +30,6 @@ from .const import (
     SERVICE_REGISTER_FACE,
 )
 from .coordinator import PlateRecognitionCoordinator
-from .face_manager import FaceManager
-from .recognition import encode_face_image
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,30 +42,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     options = dict(entry.options)
 
-    # --- Face Manager (persists to disk) ---
-    face_manager = FaceManager(hass)
-
-    # --- Coordinator ---
     coordinator = PlateRecognitionCoordinator(
         hass,
         entry.entry_id,
         options,
-        face_manager,
     )
     await coordinator.async_setup()
 
-    hass.data[DOMAIN][entry.entry_id] = {
-        "coordinator": coordinator,
-        "face_manager": face_manager,
-    }
+    hass.data[DOMAIN][entry.entry_id] = {"coordinator": coordinator}
 
-    # --- Set up platforms ---
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # --- Register services (only once) ---
     _register_services(hass)
 
-    # --- Listen for options updates ---
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
 
     return True
@@ -120,16 +111,21 @@ def _register_services(hass: HomeAssistant) -> None:
         with open(file_path, "rb") as f:
             image_bytes = f.read()
 
-        encodings = await hass.async_add_executor_job(encode_face_image, image_bytes)
-        if not encodings:
+        try:
+            result = await coordinator.api.register_face(name, image_bytes)
+        except Exception as exc:
             raise HomeAssistantError(
-                f"No face detected in '{file_path}'. Please use a clear portrait photo."
-            )
+                f"Could not register face '{name}': {exc}"
+            ) from exc
 
-        count = coordinator.face_manager.add_face(name, encodings)
-        # Force sensors to refresh
-        coordinator.async_set_updated_data(dict(coordinator.data))
-        _LOGGER.info("Registered %d encoding(s) for '%s'.", len(encodings), name)
+        _LOGGER.info(
+            "Registered %d encoding(s) for '%s' (total: %d).",
+            result.get("encodings_added", 0),
+            name,
+            result.get("total_encodings", 0),
+        )
+        # Refresh known-faces sensor
+        await coordinator._refresh_known_faces()  # noqa: SLF001
 
     hass.services.async_register(
         DOMAIN,
@@ -144,7 +140,7 @@ def _register_services(hass: HomeAssistant) -> None:
     )
 
     # ----------------------------------------------------------------
-    # capture_face – take a photo from a camera entity and register it
+    # capture_face_from_camera – snapshot → register
     # ----------------------------------------------------------------
     async def handle_capture_face(call: ServiceCall) -> None:
         name: str = call.data[ATTR_FACE_NAME]
@@ -158,22 +154,20 @@ def _register_services(hass: HomeAssistant) -> None:
                 f"Could not capture image from camera '{camera_entity_id}'."
             )
 
-        encodings = await hass.async_add_executor_job(
-            encode_face_image, image.content
-        )
-        if not encodings:
+        try:
+            result = await coordinator.api.register_face(name, image.content)
+        except Exception as exc:
             raise HomeAssistantError(
-                f"No face detected in the image from '{camera_entity_id}'."
-            )
+                f"Could not register face '{name}' from camera '{camera_entity_id}': {exc}"
+            ) from exc
 
-        count = coordinator.face_manager.add_face(name, encodings)
-        coordinator.async_set_updated_data(dict(coordinator.data))
         _LOGGER.info(
             "Captured & registered %d face(s) for '%s' from %s.",
-            len(encodings),
+            result.get("encodings_added", 0),
             name,
             camera_entity_id,
         )
+        await coordinator._refresh_known_faces()  # noqa: SLF001
 
     hass.services.async_register(
         DOMAIN,
@@ -193,10 +187,10 @@ def _register_services(hass: HomeAssistant) -> None:
     async def handle_delete_face(call: ServiceCall) -> None:
         name: str = call.data[ATTR_FACE_NAME]
         coordinator = _get_coordinator(hass)
-        found = coordinator.face_manager.delete_face(name)
-        coordinator.async_set_updated_data(dict(coordinator.data))
+        found = await coordinator.api.delete_face(name)
         if not found:
             raise HomeAssistantError(f"Face '{name}' not found in database.")
+        await coordinator._refresh_known_faces()  # noqa: SLF001
 
     hass.services.async_register(
         DOMAIN,
@@ -210,8 +204,9 @@ def _register_services(hass: HomeAssistant) -> None:
     # ----------------------------------------------------------------
     async def handle_list_faces(call: ServiceCall) -> None:
         coordinator = _get_coordinator(hass)
-        names = coordinator.face_manager.known_names
-        counts = coordinator.face_manager.face_count()
+        data = await coordinator.api.list_faces()
+        names = data.get("names", [])
+        counts = data.get("face_counts", {})
         hass.bus.async_fire(
             f"{DOMAIN}_faces_listed",
             {"names": names, "face_counts": counts},
@@ -219,3 +214,44 @@ def _register_services(hass: HomeAssistant) -> None:
         _LOGGER.info("Known faces: %s", names)
 
     hass.services.async_register(DOMAIN, SERVICE_LIST_FACES, handle_list_faces)
+
+    # ----------------------------------------------------------------
+    # save_profile – associate name with plates and HA user
+    # ----------------------------------------------------------------
+    async def handle_save_profile(call: ServiceCall) -> None:
+        name: str = call.data[ATTR_FACE_NAME]
+        plates: str = call.data.get("plates", "")
+        user_id: str | None = call.data.get("user_id")
+        
+        coordinator = _get_coordinator(hass)
+        success = await coordinator.api.update_profile(name, plates, user_id)
+        if not success:
+            raise HomeAssistantError(f"Could not save profile for {name}")
+        await coordinator._refresh_known_faces()
+
+    hass.services.async_register(
+        DOMAIN,
+        "save_profile",
+        handle_save_profile,
+        schema=vol.Schema({
+            vol.Required(ATTR_FACE_NAME): cv.string,
+            vol.Optional("plates"): cv.string,
+            vol.Optional("user_id"): vol.Any(cv.string, None),
+        }),
+    )
+
+    # ----------------------------------------------------------------
+    # delete_profile – remove a person profile
+    # ----------------------------------------------------------------
+    async def handle_delete_profile(call: ServiceCall) -> None:
+        name: str = call.data[ATTR_FACE_NAME]
+        coordinator = _get_coordinator(hass)
+        await coordinator.api.delete_profile(name)
+        await coordinator._refresh_known_faces()
+
+    hass.services.async_register(
+        DOMAIN,
+        "delete_profile",
+        handle_delete_profile,
+        schema=vol.Schema({vol.Required(ATTR_FACE_NAME): cv.string}),
+    )

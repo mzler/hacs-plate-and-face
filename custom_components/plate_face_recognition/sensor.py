@@ -18,6 +18,7 @@ from .const import (
     ATTR_PLATES,
     ATTR_UNKNOWN_COUNT,
     CONF_CAMERAS,
+    DATA_KEY_KNOWN_FACES,
     DOMAIN,
     NAME,
     SENSOR_TYPE_FACE,
@@ -205,14 +206,15 @@ class KnownFacesSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return count of registered faces."""
-        return str(len(self.coordinator.face_manager.known_names))
+        known = self.coordinator.get_known_faces()
+        return str(known.get("total", 0))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        face_counts = self.coordinator.face_manager.face_count()
+        known = self.coordinator.get_known_faces()
         return {
-            "names": self.coordinator.face_manager.known_names,
-            "face_counts": face_counts,
+            "names": known.get("names", []),
+            "face_counts": known.get("face_counts", {}),
         }
 
     @property

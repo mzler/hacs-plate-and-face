@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Update version in manifest.json
+        run: |
+          sed -i 's/"version": ".*"/"version": "${{ steps.get_version.outputs.VERSION }}"/' \
+            custom_components/plate_face_recognition/manifest.json
+
+      - name: Create integration ZIP
+        run: |
+          zip -r plate_face_recognition.zip \
+            custom_components/plate_face_recognition/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: plate_face_recognition.zip
+          generate_release_notes: true
+          body: |
+            ## 🚀 Installation via HACS
+            1. Öffne HACS in Home Assistant
+            2. Suche nach **Plate & Face Recognition**
+            3. Installieren & Home Assistant neu starten
+
+            ## 🐳 Add-on (ML Backend) starten
+            ```bash
+            docker pull timohaberl/pfr-addon:${{ steps.get_version.outputs.VERSION }}
+            ```
+            Oder die `docker-compose.yml` aus dem Repository nutzen.
