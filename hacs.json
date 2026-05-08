@@ -1,1 +1,4 @@
-{"name":"Plate & Face Recognition"}
+{
+  "name": "Plate and Face Recognition",
+  "homeassistant": "2023.1.0"
+}

@@ -1,12 +1,14 @@
 {
   "domain": "plate_face_recognition",
-  "name": "Plate & Face Recognition",
+  "name": "Plate and Face Recognition",
   "version": "2.0.0",
   "documentation": "https://github.com/mzler/hacs-plate-and-face",
   "issue_tracker": "https://github.com/mzler/hacs-plate-and-face/issues",
   "requirements": [],
   "dependencies": [],
-  "codeowners": ["@mzler"],
+  "codeowners": [
+    "@mzler"
+  ],
   "iot_class": "local_polling",
   "config_flow": true
 }
