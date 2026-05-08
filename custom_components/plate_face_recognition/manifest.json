@@ -2,11 +2,11 @@
   "domain": "plate_face_recognition",
   "name": "Plate & Face Recognition",
   "version": "2.0.0",
-  "documentation": "https://github.com/timohaberl/hacs-plate-face-recognition",
-  "issue_tracker": "https://github.com/timohaberl/hacs-plate-face-recognition/issues",
+  "documentation": "https://github.com/mzler/hacs-plate-and-face",
+  "issue_tracker": "https://github.com/mzler/hacs-plate-and-face/issues",
   "requirements": [],
-  "dependencies": ["camera", "ffmpeg"],
-  "codeowners": ["@timohaberl"],
+  "dependencies": [],
+  "codeowners": ["@mzler"],
   "iot_class": "local_polling",
   "config_flow": true
 }
