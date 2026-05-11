@@ -4,7 +4,7 @@
     "step": {
       "addon_url": {
         "title": "Add-on Connection",
-        "description": "Enter the URL of the Plate & Face Recognition Add-on. Default: http://localhost:8585",
+        "description": "Enter the URL of the Plate & Face Recognition Add-on. If running as a Home Assistant Add-on, use: http://a51c947e-plate-face-recognition:8585",
         "data": {
           "addon_url": "Add-on URL"
         }

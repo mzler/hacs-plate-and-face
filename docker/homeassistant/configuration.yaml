@@ -35,7 +35,28 @@ logger:
 frontend:
   themes: {}
 
-# Lovelace UI – manuell konfiguriert
+# ---------------------------------------------------------------------------
+# Management Dashboard (Ersatz für Panel)
+# ---------------------------------------------------------------------------
 lovelace:
   mode: yaml
   resources: []
+  dashboards:
+    pfr-management:
+      mode: yaml
+      filename: pfr_dashboard.yaml
+      title: "Personen & Kennzeichen"
+      icon: mdi:account-badge-outline
+      show_in_sidebar: true
+      require_admin: true
+
+# ---------------------------------------------------------------------------
+# Fake Kameras für Tests (FFMPEG)
+# ---------------------------------------------------------------------------
+ffmpeg:
+
+camera:
+  - platform: ffmpeg
+    name: "Demo Kamera (FFMPEG)"
+    input: "http://ha-demo-camera:8554/stream"
+    extra_arguments: -pred 1

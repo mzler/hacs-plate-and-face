@@ -199,6 +199,7 @@ class PlateRecognitionConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=_step1_schema(user_input),
             errors=errors,
+            description_placeholders={"max_cameras": str(MAX_CAMERAS)},
         )
 
     async def async_step_cameras(

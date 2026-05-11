@@ -2,18 +2,26 @@
   "config": {
     "step": {
       "user": {
-        "title": "Plate & Face Recognition – Setup",
-        "description": "Select up to {max_cameras} camera entities. A license-plate sensor and a face sensor will be created for each camera.",
+        "title": "Plate & Face Recognition – Connect Add-on",
+        "description": "Enter the URL of the running Plate & Face Recognition Add-on. It runs on port 8585 by default.",
+        "data": {
+          "addon_url": "Add-on URL"
+        }
+      },
+      "cameras": {
+        "title": "Plate & Face Recognition – Cameras",
+        "description": "Select up to {max_cameras} camera entities.",
         "data": {
           "cameras": "Camera entities",
           "enable_plates": "Enable license plate recognition",
           "enable_faces": "Enable face recognition",
-          "face_threshold": "Face recognition tolerance (lower = stricter)",
-          "plate_min_confidence": "Minimum OCR confidence (0–1)"
+          "face_threshold": "Face recognition tolerance",
+          "plate_min_confidence": "Minimum OCR confidence"
         }
       }
     },
     "error": {
+      "cannot_connect": "Could not connect to the add-on. Make sure the add-on is running and the URL is correct.",
       "no_cameras": "Please select at least one camera entity.",
       "too_many_cameras": "A maximum of {max_cameras} cameras is allowed."
     },
@@ -25,8 +33,8 @@
     "step": {
       "init": {
         "title": "Plate & Face Recognition – Options",
-        "description": "Update the configuration. Up to {max_cameras} cameras allowed.",
         "data": {
+          "addon_url": "Add-on URL",
           "cameras": "Camera entities",
           "enable_plates": "Enable license plate recognition",
           "enable_faces": "Enable face recognition",
@@ -36,8 +44,27 @@
       }
     },
     "error": {
+      "cannot_connect": "Could not connect to the add-on.",
       "no_cameras": "Please select at least one camera entity.",
       "too_many_cameras": "A maximum of {max_cameras} cameras is allowed."
+    }
+  },
+  "services": {
+    "register_face": {
+      "name": "Register Face",
+      "description": "Register a known person from a photo file."
+    },
+    "capture_face_from_camera": {
+      "name": "Capture Face from Camera",
+      "description": "Take a snapshot from a camera and register the face."
+    },
+    "delete_face": {
+      "name": "Delete Face",
+      "description": "Remove a person from the face database."
+    },
+    "list_faces": {
+      "name": "List Known Faces",
+      "description": "Fire an event listing all registered faces."
     }
   }
 }

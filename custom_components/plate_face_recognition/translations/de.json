@@ -2,20 +2,28 @@
   "config": {
     "step": {
       "user": {
-        "title": "Plate & Face Recognition – Einrichtung",
-        "description": "Wähle bis zu {max_cameras} Kameraentitäten aus. Pro Kamera werden je ein Sensor für Nummernschilder und einer für Gesichter angelegt.",
+        "title": "Plate & Face Recognition – Add-on verbinden",
+        "description": "Gib die URL des Add-ons ein. Falls du es als Home Assistant Add-on installiert hast, nutze: http://a51c947e-plate-face-recognition:8585",
         "data": {
-          "cameras": "Kameraentitäten",
+          "addon_url": "Add-on URL"
+        }
+      },
+      "cameras": {
+        "title": "Plate & Face Recognition – Kameras",
+        "description": "Wähle bis zu {max_cameras} Kamera-Entitäten aus.",
+        "data": {
+          "cameras": "Kamera-Entitäten",
           "enable_plates": "Nummernschilderkennung aktivieren",
           "enable_faces": "Gesichtserkennung aktivieren",
-          "face_threshold": "Gesichtserkennungs-Toleranz (niedriger = genauer)",
-          "plate_min_confidence": "Mindestkonfidenz Texterkennung (0–1)"
+          "face_threshold": "Gesichtserkennungs-Toleranz",
+          "plate_min_confidence": "Mindestkonfidenz OCR"
         }
       }
     },
     "error": {
-      "no_cameras": "Bitte mindestens eine Kameraentität auswählen.",
-      "too_many_cameras": "Maximal {max_cameras} Kameras erlaubt."
+      "cannot_connect": "Verbindung zum Add-on fehlgeschlagen. Stelle sicher, dass das Add-on läuft und die URL korrekt ist.",
+      "no_cameras": "Bitte wähle mindestens eine Kamera-Entität.",
+      "too_many_cameras": "Maximal {max_cameras} Kameras sind erlaubt."
     },
     "abort": {
       "already_configured": "Integration ist bereits konfiguriert."
@@ -24,20 +32,39 @@
   "options": {
     "step": {
       "init": {
-        "title": "Plate & Face Recognition – Einstellungen",
-        "description": "Passe die Konfiguration an. Bis zu {max_cameras} Kameras möglich.",
+        "title": "Plate & Face Recognition – Optionen",
         "data": {
-          "cameras": "Kameraentitäten",
+          "addon_url": "Add-on URL",
+          "cameras": "Kamera-Entitäten",
           "enable_plates": "Nummernschilderkennung aktivieren",
           "enable_faces": "Gesichtserkennung aktivieren",
           "face_threshold": "Gesichtserkennungs-Toleranz",
-          "plate_min_confidence": "Mindestkonfidenz Texterkennung"
+          "plate_min_confidence": "Mindestkonfidenz OCR"
         }
       }
     },
     "error": {
-      "no_cameras": "Bitte mindestens eine Kameraentität auswählen.",
-      "too_many_cameras": "Maximal {max_cameras} Kameras erlaubt."
+      "cannot_connect": "Verbindung zum Add-on fehlgeschlagen.",
+      "no_cameras": "Bitte wähle mindestens eine Kamera-Entität.",
+      "too_many_cameras": "Maximal {max_cameras} Kameras sind erlaubt."
+    }
+  },
+  "services": {
+    "register_face": {
+      "name": "Gesicht registrieren",
+      "description": "Registriert eine bekannte Person aus einer Bilddatei."
+    },
+    "capture_face_from_camera": {
+      "name": "Gesicht von Kamera aufnehmen",
+      "description": "Nimmt einen Snapshot von einer Kamera und registriert das Gesicht."
+    },
+    "delete_face": {
+      "name": "Gesicht löschen",
+      "description": "Entfernt eine Person aus der Gesichtsdatenbank."
+    },
+    "list_faces": {
+      "name": "Gesichter auflisten",
+      "description": "Feuert ein Event mit allen registrierten Gesichtern."
     }
   }
 }
