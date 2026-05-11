@@ -1,9 +1,9 @@
 ---
-name: "Plate & Face Recognition"
-version: "1.0.0"
+name: "Plate and Face Recognition"
+version: "2.0.1"
 slug: plate_face_recognition
-description: "Lokale Nummernschild- und Gesichtserkennung via OpenCV/EasyOCR und face_recognition – ohne Cloud, ohne API-Keys."
-url: "https://github.com/timohaberl/hacs-plate-face-recognition"
+description: "Local license plate and face recognition using EasyOCR and face_recognition."
+url: "https://github.com/mzler/hacs-plate-and-face"
 
 arch:
   - amd64
