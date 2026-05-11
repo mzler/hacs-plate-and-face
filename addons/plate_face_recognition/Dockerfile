@@ -1,16 +1,15 @@
 FROM ghcr.io/home-assistant/aarch64-base-debian:bookworm
 
-# System dependencies for dlib / OpenCV / face_recognition
-RUN apt-get update && apt-get install -y --no-install-recommends     cmake     g++     make     python3-dev     python3-pip     python3-setuptools     libffi-dev     libopenblas-dev     liblapack-dev     libpng-dev     libjpeg-dev     libssl-dev     curl     && apt-get clean     && rm -rf /var/lib/apt/lists/*
-
-# Upgrade build tools to avoid 'BackendUnavailable' errors
-RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel --break-system-packages
+# Install pre-compiled system packages to avoid building from source
+RUN apt-get update && apt-get install -y --no-install-recommends     cmake     g++     make     python3-pip     python3-setuptools     python3-wheel     python3-dev     python3-numpy     python3-opencv     python3-pillow     libopenblas-dev     liblapack-dev     libjpeg-dev     libpng-dev     curl     && apt-get clean     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY app/requirements.txt /app/requirements.txt
 
-# Install dependencies - prefer binaries to save time/RAM on HA Yellow
-RUN pip3 install --no-cache-dir --prefer-binary -r requirements.txt --break-system-packages
+# Install remaining python packages
+# We use --break-system-packages for Debian Bookworm compliance
+# We skip numpy and opencv here because they are already installed via apt
+RUN pip3 install --no-cache-dir --break-system-packages     fastapi     uvicorn[standard]     python-multipart     dlib     face_recognition     easyocr
 
 COPY app/ /app/
 COPY run.sh /run.sh
