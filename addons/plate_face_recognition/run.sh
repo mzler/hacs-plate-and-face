@@ -25,3 +25,4 @@ exec uvicorn server:app \
     --workers 1 \
     --log-level info
 # Triggering GHCR build
+# Trigger retry 2
