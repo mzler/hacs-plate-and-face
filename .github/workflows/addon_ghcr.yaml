@@ -39,7 +39,9 @@ jobs:
           context: .
           file: addons/plate_face_recognition/Dockerfile
           platforms: ${{ matrix.arch == 'amd64' && 'linux/amd64' || 'linux/arm64' }}
+          build-args: |
+            BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base-debian:bookworm
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.arch }}:latest
-            ghcr.io/${{ github.repository }}/${{ matrix.arch }}:2.0.5
+            ghcr.io/${{ github.repository }}/${{ matrix.arch }}:2.0.6

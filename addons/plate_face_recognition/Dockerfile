@@ -1,4 +1,5 @@
-FROM ghcr.io/home-assistant/aarch64-base-debian:bookworm
+ARG BUILD_FROM
+FROM 
 
 # Install pre-compiled system packages to avoid building from source
 RUN apt-get update && apt-get install -y --no-install-recommends     cmake     g++     make     python3-pip     python3-setuptools     python3-wheel     python3-dev     python3-numpy     python3-opencv     python3-pillow     libopenblas-dev     liblapack-dev     libjpeg-dev     libpng-dev     curl     && apt-get clean     && rm -rf /var/lib/apt/lists/*
