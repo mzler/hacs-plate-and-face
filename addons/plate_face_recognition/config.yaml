@@ -1,6 +1,6 @@
 ---
 name: "Plate and Face Recognition"
-version: "2.0.1"
+version: "2.0.2"
 slug: plate_face_recognition
 description: "Local license plate and face recognition using EasyOCR and face_recognition."
 url: "https://github.com/mzler/hacs-plate-and-face"
