@@ -26,3 +26,4 @@ exec uvicorn server:app \
     --log-level info
 # Triggering GHCR build
 # Trigger retry 2
+# Trigger retry 3
