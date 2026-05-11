@@ -24,3 +24,4 @@ exec uvicorn server:app \
     --port "${PORT}" \
     --workers 1 \
     --log-level info
+# Triggering GHCR build
