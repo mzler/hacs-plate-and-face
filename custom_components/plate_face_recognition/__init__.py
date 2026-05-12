@@ -17,6 +17,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.components import frontend
 
 from .const import (
     ATTR_CAMERA_ENTITY,
@@ -53,6 +54,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    # Register management panel in sidebar
+    hass.http.register_static_path(
+        f"/{DOMAIN}/static",
+        Path(__file__).parent / "www",
+        cache_headers=False
+    )
+    frontend.async_register_panel(
+        hass,
+        DOMAIN,
+        "iframe",
+        {"url": f"/{DOMAIN}/static/pfr_management.html"},
+        title="Plate & Face",
+        icon="mdi:face-recognition",
+    )
+
     _register_services(hass)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
@@ -69,6 +85,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
+        frontend.async_remove_panel(hass, DOMAIN)
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
